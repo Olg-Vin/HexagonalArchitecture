@@ -1,4 +1,4 @@
-package org.vinio.domain.model;
+package org.vinio.domain.service;
 
 
 import org.vinio.domain.model.deliveryAgregate.Delivery;

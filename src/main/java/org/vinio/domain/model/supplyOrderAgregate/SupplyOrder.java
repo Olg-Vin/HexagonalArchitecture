@@ -1,6 +1,6 @@
 package org.vinio.domain.model.supplyOrderAgregate;
 
-import org.vinio.domain.model.DomainEvent;
+import org.vinio.domain.service.DomainEvent;
 
 import java.time.LocalDateTime;
 
@@ -44,7 +44,7 @@ public class SupplyOrder {
             throw new IllegalStateException("Отправить можно только подтверждённый заказ.");
         }
         this.orderStatus = OrderStatus.SENT;
-        domainEvent.supplyOrderSent(this.id, this.productName, this.productQuantity);
+//      TODO перенести в сервисы domainEvent.supplyOrderSent(this.id, this.productName, this.productQuantity);
         return this;
     }
 
