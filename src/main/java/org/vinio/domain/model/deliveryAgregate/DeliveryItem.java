@@ -26,4 +26,12 @@ public class DeliveryItem {
     public void setProductQuantity(int productQuantity) {
         this.productQuantity = productQuantity;
     }
+
+    @Override
+    public String toString() {
+        return "DeliveryItem{" +
+                "product=" + product +
+                ", productQuantity=" + productQuantity +
+                '}';
+    }
 }

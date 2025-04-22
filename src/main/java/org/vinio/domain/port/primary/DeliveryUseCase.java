@@ -5,6 +5,6 @@ package org.vinio.domain.port.primary;
  * 6. Обработка возвратов в случае проблем с качеством
  * */
 public interface DeliveryUseCase {
-    void getDeliveryAndQualityControl(int deliveryId, boolean passed);
+    void getDeliveryAndQualityControl(int deliveryId);
     void handleDeliveryReturn(int supplyOrderId);
 }

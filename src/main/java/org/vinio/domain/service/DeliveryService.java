@@ -10,20 +10,27 @@ public class DeliveryService implements DeliveryUseCase {
     DeliveryRepository deliveryRepository;
     SupplyOrderRepository supplyOrderRepository;
 
+    public DeliveryService(DeliveryRepository deliveryRepository,
+                           SupplyOrderRepository supplyOrderRepository) {
+        this.deliveryRepository = deliveryRepository;
+        this.supplyOrderRepository = supplyOrderRepository;
+    }
+
     @Override
-    public void getDeliveryAndQualityControl(int deliveryId, boolean passed) {
+    public void getDeliveryAndQualityControl(int deliveryId) {
         Delivery delivery = deliveryRepository.findById(deliveryId).orElseThrow();
         SupplyOrder supplyOrder = supplyOrderRepository.findById(delivery.getSupplyOrderId()).orElseThrow();
         supplyOrderRepository.save(supplyOrder.arrivedOrder());
 
         if (!delivery.checkProducts()) {
-            System.out.println((char) 27 + "[33m" + "Получен некачественный продукт, поставка не принята");
+            System.out.println("Получен некачественный продукт, поставка не принята");
+            System.out.println(delivery.getDeliveryItem());
             supplyOrderRepository.save(supplyOrder.rejectOrder());
             handleDeliveryReturn(deliveryId);
             return;
         }
 
-        System.out.println((char) 27 + "[33m" + "С качеством всё в порядке, поставка принята");
+        System.out.println("С качеством всё в порядке, поставка принята");
         supplyOrderRepository.save(supplyOrder.completeOrder());
     }
 
@@ -31,6 +38,6 @@ public class DeliveryService implements DeliveryUseCase {
     public void handleDeliveryReturn(int supplyOrderId) {
         SupplyOrder supplyOrder = supplyOrderRepository.findById(supplyOrderId).orElseThrow();
         supplyOrderRepository.save(supplyOrder.returnOrder());
-        System.out.println((char) 27 + "[33m" + "Заказ возвращён");
+        System.out.println("Заказ возвращён");
     }
 }

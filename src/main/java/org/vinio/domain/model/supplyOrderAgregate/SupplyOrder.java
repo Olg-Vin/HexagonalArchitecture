@@ -54,23 +54,31 @@ public class SupplyOrder {
     }
 
     public SupplyOrder confirmOrder() {
-        if (orderStatus != OrderStatus.CREATED) {
-            throw new IllegalStateException("Заказ можно подтвердить только из состояния CREATED.");
+        if (orderStatus != OrderStatus.SENT) {
+            throw new IllegalStateException("Поставщик пока не может подтвердить заказ");
         }
         this.orderStatus = OrderStatus.CONFIRMED;
         return this;
     }
 
     public SupplyOrder sentOrder() {
-        if (orderStatus != OrderStatus.CONFIRMED) {
-            throw new IllegalStateException("Отправить можно только подтверждённый заказ.");
+        if (orderStatus != OrderStatus.CREATED) {
+            throw new IllegalStateException("Нельзя отправить поставщику несуществующий заказ");
         }
         this.orderStatus = OrderStatus.SENT;
         return this;
     }
 
+    public SupplyOrder sentDelivery() {
+        if (orderStatus != OrderStatus.CONFIRMED) {
+            throw new IllegalStateException("Поставщик не может отправить неподтверждённый заказ");
+        }
+        this.orderStatus = OrderStatus.DELIVERY_SENT;
+        return this;
+    }
+
     public SupplyOrder arrivedOrder() {
-        if (orderStatus != OrderStatus.SENT) {
+        if (orderStatus != OrderStatus.DELIVERY_SENT) {
             throw new IllegalStateException("Прибыть может только отправленный заказ");
         }
         this.orderStatus = OrderStatus.DELIVERY_ARRIVED;
@@ -123,5 +131,17 @@ public class SupplyOrder {
 
     public Map<String, Integer> getProducts() {
         return products;
+    }
+
+    @Override
+    public String toString() {
+        return "SupplyOrder{" +
+                "id=" + id +
+                ", productName='" + productName + '\'' +
+                ", productQuantity=" + productQuantity +
+                ", products=" + products +
+                ", orderStatus=" + orderStatus +
+                ", createDate=" + createDate +
+                '}';
     }
 }

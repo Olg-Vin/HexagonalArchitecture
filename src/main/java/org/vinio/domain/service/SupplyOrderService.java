@@ -9,16 +9,26 @@ import org.vinio.domain.port.secondary.DeliveryRepository;
 import org.vinio.domain.port.secondary.ProductRepository;
 import org.vinio.domain.port.secondary.SupplyOrderRepository;
 
+import java.util.List;
 import java.util.Map;
 
-// Когда происходит событие SupplyOrderSent, создается новый агрегат Delivery
-// Агрегат Delivery содержит ссылку на идентификатор соответствующего SupplyOrder
-// Состояние заказа в SupplyOrder обновляется в зависимости от событий агрегата Delivery
-// По идее такая механика реализуется при помощи команд и событий, которые я игнорирую))
 public class SupplyOrderService implements SupplyOrderUseCase {
     ProductRepository productRepository;
     DeliveryRepository deliveryRepository;
     SupplyOrderRepository supplyOrderRepository;
+
+    public SupplyOrderService(ProductRepository productRepository,
+                              DeliveryRepository deliveryRepository,
+                              SupplyOrderRepository supplyOrderRepository) {
+        this.productRepository = productRepository;
+        this.deliveryRepository = deliveryRepository;
+        this.supplyOrderRepository = supplyOrderRepository;
+    }
+
+    @Override
+    public List<SupplyOrder> showAllOrders() {
+        return supplyOrderRepository.findAll();
+    }
 
     @Override
     public SupplyOrder createSupplyOrder(String productName, int quantity) {
@@ -28,9 +38,16 @@ public class SupplyOrderService implements SupplyOrderUseCase {
     }
 
     @Override
+    public SupplyOrder createSupplyOrderMap(Map<String, Integer> products) {
+        SupplyOrder supplyOrder = new SupplyOrder(products);
+        supplyOrderRepository.save(supplyOrder);
+        return supplyOrder;
+    }
+
+    @Override
     public void sendSupplyOrder(int orderId) {
         SupplyOrder supplyOrder = supplyOrderRepository.findById(orderId).orElseThrow();
-        supplyOrderSent(supplyOrder);
+//        supplyOrderSent(supplyOrder);
         supplyOrderRepository.save(supplyOrder.sentOrder());
     }
 
@@ -38,6 +55,7 @@ public class SupplyOrderService implements SupplyOrderUseCase {
     public void confirmSupplyAndCreateDelivery(int orderId) {
         SupplyOrder supplyOrder = supplyOrderRepository.findById(orderId).orElseThrow();
         supplyOrder.confirmOrder();
+        supplyOrderSent(supplyOrder);
     }
 
     @Override
@@ -52,6 +70,9 @@ public class SupplyOrderService implements SupplyOrderUseCase {
             Product product = productRepository.findByName(entry.getKey()).orElseThrow();
             delivery.setDeliveryItem(product, entry.getValue());
         }
+        supplyOrderRepository.save(supplyOrder.sentDelivery());
+
+        System.out.println("Поставка отправлена");
         deliveryRepository.save(delivery);
     }
 

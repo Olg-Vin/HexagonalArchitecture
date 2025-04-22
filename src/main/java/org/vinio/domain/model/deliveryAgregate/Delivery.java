@@ -1,6 +1,7 @@
 package org.vinio.domain.model.deliveryAgregate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,7 +13,7 @@ public class Delivery {
     private static int staticId = 0;
     private final int id;
     private final int supplyOrderId;
-    private List<DeliveryItem> deliveryItem;
+    private List<DeliveryItem> deliveryItem = new ArrayList<>();
     private final LocalDateTime createdAt = LocalDateTime.now();
 
     public Delivery(int supplyOrderId) {
