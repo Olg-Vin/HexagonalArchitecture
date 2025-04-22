@@ -1,22 +1,27 @@
 package org.vinio.domain.model.supplyOrderAgregate;
 
-import org.vinio.domain.service.DomainEvent;
-
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * Заказ поставщику
- * Позволяет создать заказ, подтвердить заказ, отправить заказ
+ * SupplyOrder - Заказ поставщику
+ * Команды:
+ * SupplyOrder() - создать заказ поставщику
+ *   - инициирует событие SupplyOrderCreated - заказ поставщику создан
+ * confirmOrder() - подтвердить заказ
+ *   - инициирует событие SupplyOrderConfirmed - заказ подтверждён
+ * sendOrder() - отправить заказ поставщику
+ *   - инициирует событие SupplyOrderSent - заказ отправлен поставщику
  * */
 public class SupplyOrder {
     private static int staticId = 0;
     private final int id;
-    private final String productName;
-    private final int productQuantity;
+    private String productName;
+    private int productQuantity;
+    private final Map<String, Integer> products = new HashMap<>();
     private OrderStatus orderStatus = OrderStatus.CREATED;
     private final LocalDateTime createDate = LocalDateTime.now();
-
-    DomainEvent domainEvent = new DomainEvent();
 
     public SupplyOrder(String productName, int productQuantity) {
         if (productName == null || productName.trim().isEmpty()) {
@@ -29,6 +34,23 @@ public class SupplyOrder {
         this.id = staticId++;
         this.productName = productName;
         this.productQuantity = productQuantity;
+    }
+
+    public SupplyOrder(Map<String, Integer> products) {
+        if (products == null || products.isEmpty()) {
+            throw new IllegalArgumentException("Список продуктов не может быть пустым.");
+        }
+
+        for (Map.Entry<String, Integer> entry : products.entrySet()) {
+            if (entry.getKey() == null || entry.getKey().trim().isEmpty()) {
+                throw new IllegalArgumentException("Имя продукта не может быть пустым.");
+            }
+            if (entry.getValue() <= 0) {
+                throw new IllegalArgumentException("Количество продукта должно быть больше 0.");
+            }
+            this.products.put(entry.getKey(), entry.getValue());
+        }
+        this.id = staticId++;
     }
 
     public SupplyOrder confirmOrder() {
@@ -44,7 +66,38 @@ public class SupplyOrder {
             throw new IllegalStateException("Отправить можно только подтверждённый заказ.");
         }
         this.orderStatus = OrderStatus.SENT;
-//      TODO перенести в сервисы domainEvent.supplyOrderSent(this.id, this.productName, this.productQuantity);
+        return this;
+    }
+
+    public SupplyOrder arrivedOrder() {
+        if (orderStatus != OrderStatus.SENT) {
+            throw new IllegalStateException("Прибыть может только отправленный заказ");
+        }
+        this.orderStatus = OrderStatus.DELIVERY_ARRIVED;
+        return this;
+    }
+
+    public SupplyOrder rejectOrder() {
+        if (orderStatus != OrderStatus.DELIVERY_ARRIVED) {
+            throw new IllegalStateException("Нельзя отклонить не прибывший заказ");
+        }
+        this.orderStatus = OrderStatus.DELIVERY_REJECTED;
+        return this;
+    }
+
+    public SupplyOrder completeOrder() {
+        if (orderStatus != OrderStatus.DELIVERY_ARRIVED) {
+            throw new IllegalStateException("Нельзя принять не прибывший заказ");
+        }
+        this.orderStatus = OrderStatus.DELIVERY_COMPLETED;
+        return this;
+    }
+
+    public SupplyOrder returnOrder() {
+        if (orderStatus != OrderStatus.DELIVERY_REJECTED) {
+            throw new IllegalStateException("Невозможно вернуть эту доставку");
+        }
+        this.orderStatus = OrderStatus.RETURNED;
         return this;
     }
 
@@ -66,5 +119,9 @@ public class SupplyOrder {
 
     public LocalDateTime getCreateDate() {
         return createDate;
+    }
+
+    public Map<String, Integer> getProducts() {
+        return products;
     }
 }

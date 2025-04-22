@@ -1,36 +1,59 @@
 package org.vinio.domain.model.deliveryAgregate;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Поставка
- * Отправить поставку, проверить качество продуктов
+ * Delivery() - отправить поставку со стороны поставщика
+ * CheckProducts() - проверить качество продукта
  * */
 public class Delivery {
     private static int staticId = 0;
     private final int id;
     private final int supplyOrderId;
-    private DeliveryItem deliveryItem;
-    private LocalDateTime createdAt = LocalDateTime.now();
-    private DeliveryStatus deliveryStatus = DeliveryStatus.SENT;
+    private List<DeliveryItem> deliveryItem;
+    private final LocalDateTime createdAt = LocalDateTime.now();
 
     public Delivery(int supplyOrderId) {
         this.id = staticId++;
         this.supplyOrderId = supplyOrderId;
     }
 
-    public Delivery setDeliveryItem(Product product, int productQuantity) {
-        this.deliveryItem = new DeliveryItem(product, productQuantity);
-        return this;
+    public void setDeliveryItem(Product product, int quantity) {
+        if (product == null || quantity <= 0) {
+            throw new IllegalArgumentException("Продукт не может быть null, количество должно быть > 0.");
+        }
+
+        this.deliveryItem.add(new DeliveryItem(product, quantity));
     }
 
-    public void completeDelivery() {
-        this.deliveryStatus = DeliveryStatus.DELIVERED;
-        // возможно событие DeliveryCompletedEvent
+    public boolean checkProducts(){
+        for (DeliveryItem deliveryItem : this.deliveryItem) {
+            if (!checkExpirationDate(deliveryItem.getProduct().getExpirationDate())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkExpirationDate(LocalDateTime expirationDate) {
+        return expirationDate.isAfter(LocalDateTime.now());
+    }
+
+    public int getId() {
+        return id;
     }
 
     public int getSupplyOrderId() {
         return supplyOrderId;
     }
-}
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public List<DeliveryItem> getDeliveryItem() {
+        return deliveryItem;
+    }
+}
